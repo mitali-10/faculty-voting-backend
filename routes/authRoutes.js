@@ -14,8 +14,8 @@ router.post("/change-password", async (req, res) => {
     if (userType === "student") {
       const student = await Student.findOne({ enrollmentNo: userId.trim() });
       if (!student) return res.json({ success: false, message: "Student not found" });
-      if (student.password !== oldPassword.trim())
-        return res.json({ success: false, message: "Old password incorrect" });
+        if (student.password !== oldPassword.trim())
+         return res.json({ success: false, message: "Old password incorrect" });
       student.password = newPassword.trim();
       await student.save();
       return res.json({ success: true, message: "Password changed successfully" });
@@ -58,10 +58,10 @@ router.post("/forgot-password", async (req, res) => {
 
     // Duplicate request check
     const existing = await PasswordResetRequest.findOne({ userId: userId.trim(), userType, status: "pending" });
-    if (existing) return res.json({ success: true, message: "Request already sent. Admin se contact karein." });
+    if (existing) return res.json({ success: true, message: "Request already sent. contact form admin." });
 
     await PasswordResetRequest.create({ userId: userId.trim(), userType, name, email });
-    res.json({ success: true, message: "Request sent. Admin aapka password reset karega." });
+    res.json({ success: true, message: "Request sent. Admin are reset your password " });
   } catch { res.json({ success: false, message: "Server error" }); }
 });
 

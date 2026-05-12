@@ -92,7 +92,9 @@ app.get("/api/admin/stats", async (req, res) => {
     const totalStudents = await Student.countDocuments();
     const totalVoted = await Student.countDocuments({ hasVoted: true });
     const topCandidate = await Candidate.findOne().sort({ votes: -1 });
-    res.json({ success: true, stats: { totalStudents, totalVoted, totalNotVoted: totalStudents - totalVoted, topCandidate: topCandidate?.name || "N/A", topCandidateVotes: topCandidate?.votes || 0 } });
+    res.json({ success: true, stats: { totalStudents, totalVoted, 
+      totalNotVoted: totalStudents - totalVoted, topCandidate: topCandidate?.name || "N/A", 
+      topCandidateVotes: topCandidate?.votes || 0 } });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
@@ -101,7 +103,8 @@ app.get("/api/admin/candidates", async (req, res) => {
   try {
     const candidates = await Candidate.find().sort({ votes: -1 });
     const total = candidates.reduce((s, c) => s + c.votes, 0);
-    res.json({ success: true, candidates: candidates.map((c, i) => ({ ...c.toObject(), percentage: total > 0 ? ((c.votes/total)*100).toFixed(1) : "0.0", rank: i+1 })), totalVotes: total });
+    res.json({ success: true, candidates: candidates.map((c, i) => ({ ...c.toObject(), 
+      percentage: total > 0 ? ((c.votes/total)*100).toFixed(1) : "0.0", rank: i+1 })), totalVotes: total });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
@@ -115,7 +118,8 @@ app.post("/api/admin/candidates/add", async (req, res) => {
     const loginPass = password?.trim() || "candidate@123";
     const dupCheck = await Candidate.findOne({ candidateLoginId: loginId });
     if (dupCheck) return res.json({ success: false, message: `Login ID "${loginId}" already exists` });
-    const candidate = await Candidate.create({ id: newId, name, subject, qualification: qualification || "", photo: photo || "", email: email || "", votes: 0, candidateLoginId: loginId, password: loginPass });
+    const candidate = await Candidate.create({ id: newId, name, subject, qualification: qualification || "", 
+      photo: photo || "", email: email || "", votes: 0, candidateLoginId: loginId, password: loginPass });
     res.json({ success: true, message: `Candidate added! Login ID: ${loginId}, Password: candidate@123`, candidate });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
@@ -156,7 +160,8 @@ app.post("/api/admin/candidates/login", async (req, res) => {
     const c = await Candidate.findOne({ candidateLoginId: candidateLoginId.trim() });
     if (!c) return res.json({ success: false, message: "Candidate not found" });
     if (c.password !== password.trim()) return res.json({ success: false, message: "Invalid password" });
-    res.json({ success: true, candidate: { _id: c._id, id: c.id, candidateLoginId: c.candidateLoginId, name: c.name, subject: c.subject, qualification: c.qualification, photo: c.photo, votes: c.votes } });
+    res.json({ success: true, candidate: { _id: c._id, id: c.id, candidateLoginId: c.candidateLoginId, 
+      name: c.name, subject: c.subject, qualification: c.qualification, photo: c.photo, votes: c.votes } });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
@@ -177,9 +182,11 @@ app.post("/api/vote", async (req, res) => {
     const config = await ElectionConfig.findOne();
     if (config) {
       const now = new Date();
-      if (!config.isActive) return res.json({ success: false, message: "Voting band hai." });
-      if (config.startTime && now < config.startTime) return res.json({ success: false, message: "Voting shuru nahi hui.", startTime: config.startTime });
-      if (config.endTime && now > config.endTime) return res.json({ success: false, message: "Voting khatam ho gayi.", ended: true });
+      if (!config.isActive) return res.json({ success: false, message: "Voting closed." });
+      if (config.startTime && now < config.startTime) return res.json({ success: false, 
+        message: "Voting not started.", startTime: config.startTime });
+      if (config.endTime && now > config.endTime) return res.json({ success: false, 
+        message: "Voting ended.", ended: true });
     }
     const student = await Student.findById(studentId);
     if (!student) return res.json({ success: false, message: "Student not found" });
@@ -199,7 +206,9 @@ app.post("/api/vote", async (req, res) => {
 app.get("/api/results", async (req, res) => {
   try {
     const results = await Candidate.find().sort({ votes: -1 });
-    res.json(results.map(c => ({ _id: c._id, id: c.id, name: c.name, subject: c.subject, qualification: c.qualification, photo: c.photo, votes: c.votes, candidateLoginId: c.candidateLoginId, email: c.email })));
+    res.json(results.map(c => ({ _id: c._id, id: c.id, name: c.name, subject: c.subject, 
+      qualification: c.qualification, photo: c.photo, votes: c.votes, 
+      candidateLoginId: c.candidateLoginId, email: c.email })));
   } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
@@ -230,9 +239,9 @@ app.get("/api/election/check", async (req, res) => {
     const config = await ElectionConfig.findOne();
     if (!config) return res.json({ allowed: true });
     const now = new Date();
-    if (!config.isActive) return res.json({ allowed: false, reason: "Voting band hai." });
-    if (config.startTime && now < config.startTime) return res.json({ allowed: false, reason: "Voting shuru nahi hui.", startTime: config.startTime });
-    if (config.endTime && now > config.endTime) return res.json({ allowed: false, reason: "Voting khatam ho gayi.", endTime: config.endTime });
+    if (!config.isActive) return res.json({ allowed: false, reason: "Voting closed." });
+    if (config.startTime && now < config.startTime) return res.json({ allowed: false, reason: "Voting not started.", startTime: config.startTime });
+    if (config.endTime && now > config.endTime) return res.json({ allowed: false, reason: "Voting ended.", endTime: config.endTime });
     res.json({ allowed: true, endTime: config.endTime || null });
   } catch (e) { res.json({ allowed: true }); }
 });
@@ -263,7 +272,7 @@ app.post("/api/auth/forgot-password", async (req, res) => {
     const { userId, userType } = req.body;
     if (!userId || !userType) return res.json({ success: false, message: "ID required" });
     const existing = resetRequests.find(r => r.userId === userId.trim() && r.status === "pending");
-    if (existing) return res.json({ success: true, message: "Request already sent. Admin se contact karein." });
+    if (existing) return res.json({ success: true, message: "Request already sent. Contact admin." });
     let name = userId, email = "";
     if (userType === "student") {
       const s = await Student.findOne({ enrollmentNo: userId.trim() });
