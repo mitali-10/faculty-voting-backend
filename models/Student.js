@@ -9,7 +9,6 @@ const studentSchema = new mongoose.Schema({
   password: { type: String, required: true },
   isActive: { type: Boolean, default: true },
   hasVoted: { type: Boolean, default: false },
-  faceDescriptor: { type: [Number], default: null }, // face-api.js 128-point descriptor
 });
 
 module.exports = mongoose.model("Student", studentSchema);
